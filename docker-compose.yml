@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: strikeball_app
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - APP_ENV=local
+    depends_on:
+      - mysql
+      - redis
+
+  nginx:
+    image: nginx:stable
+    container_name: strikeball_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: strikeball_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: strikeball
+      MYSQL_USER: strikeball
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  redis:
+    image: redis:7
+    container_name: strikeball_redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  dbdata:
